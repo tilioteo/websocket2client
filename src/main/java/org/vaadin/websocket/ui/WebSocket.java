@@ -1,16 +1,24 @@
+/**
+ * Apache Licence Version 2.0
+ */
 package org.vaadin.websocket.ui;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.Component;
-import com.vaadin.util.ReflectTools;
-
 import org.vaadin.websocket.shared.ui.websocket.WebSocketClientRpc;
 import org.vaadin.websocket.shared.ui.websocket.WebSocketServerRpc;
 import org.vaadin.websocket.shared.ui.websocket.WebSocketState;
 
+import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.Component;
+import com.vaadin.util.ReflectTools;
+
+/**
+ * @author Kamil Morong, Tilioteo Ltd
+ * 
+ * Vaadin WebSocket client add-on
+ */
 @SuppressWarnings("serial")
 public class WebSocket extends AbstractComponent {
 
@@ -37,8 +45,14 @@ public class WebSocket extends AbstractComponent {
 			WebSocket.this.connected = false;
 			fireEvent(new CloseEvent(WebSocket.this));
 		}
+
+		@Override
+		public void fail() {
+			WebSocket.this.connected = false;
+			fireEvent(new FailEvent(WebSocket.this));
+		}
 	};
-	
+
 	private WebSocketClientRpc clientRpc;
 	private boolean connected = false;
 
@@ -51,20 +65,20 @@ public class WebSocket extends AbstractComponent {
 		this();
 		setUrl(url);
 	}
-	
+
 	public void setUrl(String url) {
 		// TODO check url
 		getState().url = url;
 	}
-	
+
 	public String getUrl() {
 		return getState().url;
 	}
-	
+
 	public boolean isConnected() {
 		return connected;
 	}
-	
+
 	public void send(String message) {
 		if (connected) {
 			clientRpc.send(message);
@@ -79,7 +93,7 @@ public class WebSocket extends AbstractComponent {
 	public WebSocketState getState() {
 		return (WebSocketState) super.getState();
 	}
-	
+
 	public class OpenEvent extends Component.Event {
 
 		public static final String EVENT_ID = "open";
@@ -91,8 +105,8 @@ public class WebSocket extends AbstractComponent {
 
 	public interface OpenListener extends Serializable {
 
-		public static final Method OPEN_METHOD = ReflectTools
-				.findMethod(OpenListener.class, OpenEvent.EVENT_ID, OpenEvent.class);
+		public static final Method OPEN_METHOD = ReflectTools.findMethod(OpenListener.class, OpenEvent.EVENT_ID,
+				OpenEvent.class);
 
 		/**
 		 * Called when a {@link WebSocket} has been opened. A reference to the
@@ -115,8 +129,8 @@ public class WebSocket extends AbstractComponent {
 
 	public interface CloseListener extends Serializable {
 
-		public static final Method CLOSE_METHOD = ReflectTools
-				.findMethod(CloseListener.class, CloseEvent.EVENT_ID, CloseEvent.class);
+		public static final Method CLOSE_METHOD = ReflectTools.findMethod(CloseListener.class, CloseEvent.EVENT_ID,
+				CloseEvent.class);
 
 		/**
 		 * Called when a {@link WebSocket} has been closed. A reference to the
@@ -128,17 +142,41 @@ public class WebSocket extends AbstractComponent {
 		public void close(CloseEvent event);
 	}
 
+	public class FailEvent extends Component.Event {
+
+		public static final String EVENT_ID = "fail";
+
+		public FailEvent(WebSocket source) {
+			super(source);
+		}
+	}
+
+	public interface FailListener extends Serializable {
+
+		public static final Method FAIL_METHOD = ReflectTools.findMethod(FailListener.class, FailEvent.EVENT_ID,
+				FailEvent.class);
+
+		/**
+		 * Called when a {@link WebSocket} cannot connect. A reference to the
+		 * component is given by {@link FailEvent#getComponent()}.
+		 * 
+		 * @param event
+		 *            An event containing information about the web socket.
+		 */
+		public void fail(FailEvent event);
+	}
+
 	public class MessageEvent extends Component.Event {
 
 		public static final String EVENT_ID = "message";
-		
+
 		private String message;
 
 		public MessageEvent(WebSocket source, String message) {
 			super(source);
 			this.message = message;
 		}
-		
+
 		public String getMessage() {
 			return message;
 		}
@@ -146,12 +184,12 @@ public class WebSocket extends AbstractComponent {
 
 	public interface MessageListener extends Serializable {
 
-		public static final Method MESSAGE_METHOD = ReflectTools
-				.findMethod(MessageListener.class, MessageEvent.EVENT_ID, MessageEvent.class);
+		public static final Method MESSAGE_METHOD = ReflectTools.findMethod(MessageListener.class,
+				MessageEvent.EVENT_ID, MessageEvent.class);
 
 		/**
-		 * Called when a {@link WebSocket} recieved a message. A reference to the
-		 * component is given by {@link MessageEvent#getComponent()}.
+		 * Called when a {@link WebSocket} recieved a message. A reference to
+		 * the component is given by {@link MessageEvent#getComponent()}.
 		 * 
 		 * @param event
 		 *            An event containing information about the web socket.
@@ -162,14 +200,14 @@ public class WebSocket extends AbstractComponent {
 	public class ErrorEvent extends Component.Event {
 
 		public static final String EVENT_ID = "error";
-		
+
 		private String message;
 
 		public ErrorEvent(WebSocket source, String message) {
 			super(source);
 			this.message = message;
 		}
-		
+
 		public String getMessage() {
 			return message;
 		}
@@ -177,12 +215,13 @@ public class WebSocket extends AbstractComponent {
 
 	public interface ErrorListener extends Serializable {
 
-		public static final Method ERROR_METHOD = ReflectTools
-				.findMethod(ErrorListener.class, ErrorEvent.EVENT_ID, ErrorEvent.class);
+		public static final Method ERROR_METHOD = ReflectTools.findMethod(ErrorListener.class, ErrorEvent.EVENT_ID,
+				ErrorEvent.class);
 
 		/**
-		 * Called when an error occurred on {@link WebSocket} connection. A reference to the
-		 * component is given by {@link ErrorEvent#getComponent()}.
+		 * Called when an error occurred on {@link WebSocket} connection. A
+		 * reference to the component is given by
+		 * {@link ErrorEvent#getComponent()}.
 		 * 
 		 * @param event
 		 *            An event containing information about the web socket.
@@ -204,6 +243,14 @@ public class WebSocket extends AbstractComponent {
 
 	public void removeCloseListener(CloseListener listener) {
 		removeListener(CloseEvent.EVENT_ID, CloseEvent.class, listener);
+	}
+
+	public void addFailListener(FailListener listener) {
+		addListener(FailEvent.EVENT_ID, FailEvent.class, listener, FailListener.FAIL_METHOD);
+	}
+
+	public void removeFailListener(FailListener listener) {
+		removeListener(FailEvent.EVENT_ID, FailEvent.class, listener);
 	}
 
 	public void addMessageListener(MessageListener listener) {

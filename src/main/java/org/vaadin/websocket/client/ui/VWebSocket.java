@@ -1,14 +1,24 @@
+/**
+ * Apache Licence Version 2.0
+ */
 package org.vaadin.websocket.client.ui;
 
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * @author Kamil Morong, Tilioteo Ltd
+ * 
+ * Vaadin WebSocket client add-on
+ */
 public class VWebSocket extends Widget {
-	
+
 	private WebSocketHandler handler = null;
 	private WebSocketObject webSocketObject = null;
-	
+
 	private String url = "";
+
+	private boolean opening = false;
 
 	public static final String CLASSNAME = "v-websocket";
 
@@ -17,18 +27,19 @@ public class VWebSocket extends Widget {
 		setStyleName(CLASSNAME);
 		setVisible(false);
 	}
-	
+
 	private void initWebSocketObject() {
 		if (webSocketObject != null) {
 			webSocketObject.close();
 			webSocketObject = null;
 		}
-		
+
 		if (url != null && !url.isEmpty()) {
+			opening = true;
 			initWebSocketObject(this, url);
 		}
 	}
-	
+
 	private static native void initWebSocketObject(VWebSocket widget, String url) /*-{
 		try {
 			var obj = new $wnd.WebSocket(url);
@@ -49,35 +60,34 @@ public class VWebSocket extends Widget {
 			}
 			
 			widget.@org.vaadin.websocket.client.ui.VWebSocket::webSocketObject = obj;
-						
-		} catch(e) {
+			
+			} catch(e) {
 		}
 	}-*/;
-	
+
 	public void setUrl(String url) {
 		if (this.url != url) {
 			this.url = url;
 			initWebSocketObject();
 		}
 	}
-	
+
 	public void send(String message) {
 		if (webSocketObject != null) {
 			webSocketObject.send(message);
 		}
 	}
-	
+
 	public void close() {
 		if (webSocketObject != null) {
 			webSocketObject.close();
 		}
 	}
-	
+
 	public void setHandler(WebSocketHandler handler) {
 		this.handler = handler;
 	}
-	
-	
+
 	public void onMessage(String message) {
 		if (handler != null) {
 			handler.onMessage(message);
@@ -91,6 +101,7 @@ public class VWebSocket extends Widget {
 	}
 
 	public void onOpen() {
+		opening = false;
 		if (handler != null) {
 			handler.onOpen();
 		}
@@ -98,7 +109,14 @@ public class VWebSocket extends Widget {
 
 	public void onClose() {
 		if (handler != null) {
-			handler.onClose();
+			if (opening) {
+				opening = false;
+				this.url = null;
+				webSocketObject = null;
+				handler.onFail();
+			} else {
+				handler.onClose();
+			}
 		}
 	}
 
