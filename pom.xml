@@ -5,7 +5,7 @@
 	<groupId>org.vaadin.websocket</groupId>
 	<artifactId>websocket2client</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.9.1</version>
 	<name>Vaadin Websocket to Client Component Add-on</name>
 
 	<properties>
@@ -135,7 +135,7 @@
 				</configuration>
 			</plugin>
 			
-			<plugin>
+			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.9</version>
@@ -147,7 +147,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin-->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
