@@ -4,7 +4,7 @@
 
 	<!-- Inherit DefaultWidgetSet -->
 	<inherits name="com.vaadin.DefaultWidgetSet" />
-    
+
 	<source path="client" />
 	<source path="shared" />
 
